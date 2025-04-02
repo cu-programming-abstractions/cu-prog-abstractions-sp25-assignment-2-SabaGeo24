@@ -1,16 +1,51 @@
 #include "RisingTides.h"
+#include "queue.h"
 using namespace std;
 
 Grid<bool> floodedRegionsIn(const Grid<double>& terrain,
                             const Vector<GridLocation>& sources,
                             double height) {
-    /* TODO: Delete this line and the next four lines, then implement this function. */
-    (void) terrain;
-    (void) sources;
-    (void) height;
-    return {};
-}
 
+    Queue<GridLocation> queue;
+    int rows = terrain.numRows();
+    int cols = terrain.numCols();
+
+    // Create a grid of the same size, initialized to false
+    Grid<bool> booltable(rows, cols, false);
+
+    // Add valid water sources to the queue
+    for (GridLocation source : sources) {
+        if (terrain[source.row][source.col] <= height) {  // Valid source
+            queue.enqueue(source);
+            booltable[source.row][source.col] = true;  // Mark as flooded
+        }
+    }
+
+    while (!queue.isEmpty()) {
+        GridLocation current = queue.dequeue(); // Dequeue the front position
+
+        // Define the four cardinal directions (up, down, left, right)
+        Vector<GridLocation> directions = {
+            {current.row - 1, current.col}, // Up
+            {current.row + 1, current.col}, // Down
+            {current.row, current.col - 1}, // Left
+            {current.row, current.col + 1}  // Right
+        };
+
+        // Check each adjacent square
+        for (GridLocation neighbor : directions) {
+            if (terrain.inBounds(neighbor.row, neighbor.col) &&     // Ensure within grid bounds
+                terrain[neighbor.row][neighbor.col] <= height &&   // Check if below or equal to water level
+                !booltable[neighbor.row][neighbor.col]) {          // Check if not already flooded
+
+                booltable[neighbor.row][neighbor.col] = true; // Flood the square
+                queue.enqueue(neighbor); // Add to queue for further processing
+            }
+        }
+    }
+
+    return booltable;
+}
 
 
 /***** Test Cases Below This Point *****/
